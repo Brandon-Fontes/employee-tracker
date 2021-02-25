@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-const { start } = require('repl');
+
 
 
 
@@ -19,10 +19,6 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
     if (err) throw err;
     start();
-    // getDepartments();
-    // getRoles();
-    // getManagers();
-    // getEmployees();
 });
 
 start = () => {
@@ -158,3 +154,64 @@ addRole = () => {
     });
 }
 
+addEmployee = () => {
+    getRoles();
+    getManagers();
+    let roleOptions = [];
+    for (i = 0; i < roles.length; i++) {
+        roleOptions.push(Object(roles[i]));
+    };
+    let managerOptions = [];
+    for (i = 0; i < managers.length; i++) {
+        managerOptions.push(Object(managers[i]));
+    }
+    inquirer.prompt([
+        {
+            name: "first_name",
+            type: "input",
+            message: "What is the employee's first name?"
+        },
+        {
+            name: "role_id",
+            type: "input",
+            message: "What is the employee's last name?"
+        },
+        {
+            name: "role_id",
+            type: "input",
+            message: "What is the role for this employee?",
+            choices: function() {
+                var choiceArray = [];
+                for (var i = 0; i < roleOptions.length; i++){
+                    choiceArray.push(roleOptions[i].title);
+                }
+                return choiceArray;
+            }
+        },
+        {
+            name: "manager_id",
+            type: "list",
+            message: "Who is the employee's manager?",
+            choices: function() {
+                var choiceArray = [];
+                for (var i = 0; i < managerOptions.length; i++) {
+                    choiceArray.push(managerOptions[i].managers);
+                }
+                return choiceArray;
+            }
+        }
+    ]).then(function(answer) {
+        for (i = 0; i < roleOptions.length; i++) {
+            if (roleOptions[i].title === answer.role_id) {
+                role_id = roleOptions[i].id
+            }
+        }
+        connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)VALUES ('${answer.first_name}', '${answer.last_name}', '${role_id}', ${manager_id})`, (err, res) => {
+            if (err) throw err;
+
+            console.log("1 new role added: " + answer.title);
+            getRoles();
+            start();
+         } ) })
+
+    }
