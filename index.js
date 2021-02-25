@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const { start } = require('repl');
 
 
 
@@ -114,7 +115,46 @@ addDepartment = () => {
             console.log("1 new department added: " + answer.department);
             getDepartment();
             start();
-        })
-    })
+        });
+    });
+}
+
+addRole = () => {
+    let departmentOptions = [];
+    for (i = 0; i < departments.length; i++) {
+        departmentOptions.push(Object(departments[i]));
+    }
+
+    inquirer.prompt([
+        {
+            name: "title",
+            type: "input",
+            message: "What role would you like to add?"
+        },
+        {
+            name: "salary",
+            type: "input",
+            message: "What is the salary for this position?"
+        },
+        {
+            name: "department_id",
+            type: "list",
+            message: "What is the department for this position?",
+            choices: departmentOptions
+        },
+    ]).then(function(answer) {
+        for (i = 0; i < departmentOptions.length; i++) {
+            if (departmentOptions[i].name === answer.department_id) {
+                department_id = departmentOptions[i].id
+            }
+        }
+        connection.query(`INSERT INTO role (title, salary, department_id) VALUES ('${answer.title}', '${answer.salary}', ${department_id})`, (err, res) => {
+            if (err) throw err;
+
+            console.log("1 new role added: " + answer.title);
+            getRoles();
+            start();
+        });
+    });
 }
 
