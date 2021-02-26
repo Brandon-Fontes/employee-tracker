@@ -394,5 +394,60 @@ updateEmployeeManager = () => {
                 }
             }
             getEmployees();
-    })
+            getManagers();
+            start();
+        });
+    });
+}
+deleteSomething = () => {
+    inquirer.prompt([
+        {
+            name: "delete",
+            type: "list",
+            message: "What would you like to delete?",
+            choices: ["Delete department", "Delete role", "Delete employee", "Exit"]
+        }
+    ]).then(answer => {
+        if (answer.delete === "Delete department") {
+            deleteDepartment();
+        } else if (answer.delete === "Delete role") {
+            deleteRole();
+        } else if (answer.delete === "Delete employee") {
+            deleteEmployee();
+        } else if (answer.delete === "Exit") {
+            connection.end();
+        }
+    });
+}
+deleteDepartment = () => {
+    let departmentOptions = [];
+    for (i = 0; i < departments.length; i++) {
+       departmentOptions.push(Object(departments[i]));
+    }
+    inquirer.prompt([
+        {
+            name: "deleteDepartment",
+            type: "list",
+            message: "What department would you like to delete?",
+            choices: function() {
+                var choiceArray = [];
+                for (var i = 0; i <departmentOptions.length; i++){
+                    choiceArray.push(departmentOptions[i]);
+                }
+                return choiceArray;
+            }
+        }
+    ]).then((answer) => {
+        for (i = 0; i < departmentOptions.length; i++) {
+            if (answer.deleteDepartment === departmentOptions[i].name) {
+                newChoice = departmentOptions[i].id;
+                connection.query(`DELETE FROM department WHERE id = ${newChoice}`), (err, res) => {
+                    if (err) throw err;
+                }
+                console.log("Employees: " + answer.deleteEmployee + " Deleted");
+            }
+        }
+        getEmployees();
+        start();
+        });
 }
