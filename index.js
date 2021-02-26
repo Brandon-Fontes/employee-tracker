@@ -387,7 +387,12 @@ updateEmployeeManager = () => {
             for (var i = 0; i < managerOptions.length; i++){
                 if (answer.newManager === managerOptions[i].managers) {
                     newChoice = managerOptions[i].id;
+                    connection.query(`UPDATE employee SET manager_id = ${newChoice} WHERE id = ${employeeSelected}`), (err, res) => {
+                        if (err) throw err;
+                    }
+                    console.log("Manager update success");
                 }
             }
+            getEmployees();
     })
 }
