@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
+const { start } = require('repl');
 
 
 let roles;
@@ -267,5 +268,126 @@ updateSomething = () => {
             message: "What would you like to update?",
             choices: ["Update employee roles", "Update employee managers", "Exit"]
         }
-    ])
+    ]).then(answer => {
+        if (answer.update === "Update employee roles") {
+            updateEmployeeRole();
+        } else if (answer.update === "Update employee managers") {
+            updateEmployeeManager();
+        } else if (answer.update === "Exit") {
+            connection.end();
+        }
+    });
+}
+
+updateEmployeeRole = () => {
+    let employeeOptions = [];
+
+    for (var i = 0; i < employees.length; i++) {
+        employeeOptions.push(Object(employees[i]));
+    }
+    inquirer.prompt([
+        {
+            name: "updateRole",
+            type: "list",
+            message: "Which employee's role would you like to update?",
+            choices: function(){
+                var choiceArray = [];
+                for (var i = 0; i < employeeOptions.length; i++) {
+                    choiceArray.push(employeeOptions[i].Employee_Name);
+                }
+                return choiceArray;
+            }
+        }
+    ]).then(answer => {
+        let roleOptions = [];
+        for (var i = 0; i < roles.length; i++) {
+            roleOptions.push(Object(roles[i]));
+        }
+        for (var i = 0; i < employeeOptions.length; i++) {
+            if (employeeOptions[i].Employee_Name === answer.updateRole) {
+                employeeSelected = employeeOptions[i].id
+            }
+        }
+        inquirer.prompt([
+            {
+                name: "newRole",
+                type: "list",
+                message: "Please Select a new role:",
+                choices: function() {
+                    var choiceArray = [];
+                    for (var i = 0; i < roleOptions.length; i++) {
+                        choiceArray.push(roleOptions[i].title);
+                    }
+                    return choiceArray;
+                }
+            }
+        ]).then (answer => {
+            for (i = 0; i < roleOptions.length; i++) {
+                if (answer.newRole === roleOptions[i].title) {
+                    newChoice = roleOptions[i].id;
+                    connection.query(`UPDATE employee SET role_id = ${newChoice} WHERE id = ${employeeSelected}`), (err, res) => {
+                        if (err) throw err;
+                    }
+                }
+            }
+            console.log("Role updated success");
+            getEmployees();
+            getRoles();
+            start();
+        });
+    });
+}
+
+updateEmployeeManager = () => {
+    let employeeOptions = [];
+
+    for (var i = 0; i < employees.length; i++) {
+        employeeOptions.push(Object(employees[i]));
+    }
+    inquirer.prompt([
+        {
+            name: "updateManager",
+            type: "list",
+            message: "Which employee's manager would you like to update?",
+            choices: function(){
+                var choiceArray = [];
+                for (var i = 0; i < employeeOptions.length; i++){
+                    choiceArray.push(employeeOptions[i].Employee_Name);
+                }
+                return choiceArray;
+            }
+        }
+    ]).then(answer => {
+        getEmployees();
+        getManagers();
+        let managerOptions = [];
+        for (var i = 0; i < managers.length; i++){
+            ManagerOptions.push(Object(managers[i]));
+        }
+        for (var i = 0; i < employeeOptions.length; i++){
+            if (employeeOptions[i].Employee_Name === answer.updateManager) {
+                employeeSelected = employeeOptions[i].id;
+            }
+        }
+        inquirer.prompt([
+            {
+                name: "newManager",
+                type: "list",
+                message: "Choose a new manager:",
+                choices: function(){
+                    var choiceArray = [];
+                    for (var i = 0; i < managerOptions.length; i++){
+                        choiceArray.push(managerOptions[i].managers);
+                    }
+                    return choiceArray;
+                }
+            }
+        ]).then(answer => {
+
+            for (var i = 0; i < managerOptions.length; i++){
+                if (answer.newManager === managerOptions[i].managers) {
+                    newChoice = managerOptions[i].id;
+                }
+            }
+    })
 }
