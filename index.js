@@ -5,9 +5,12 @@ const {printTable} = require('console-table-printer');
 
 
 let roles;
-let departments;
+let department;
 let managers;
-let employees;
+let employee;
+
+
+
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
@@ -47,22 +50,22 @@ start = () => {
            
        });
 }
-getRoles = () => {
+getRole = () => {
     connection.query("SELECT id, title FROM role", (err, res) => {
         if(err) throw err;
-       roles = res;
+       role = res;
    });
 }
-getDepartments = () => {
+getDepartment = () => {
     connection.query("SELECT id, name FROM department", (err, res) => {
         if (err) throw err;
         departments = res;
     })
 }
 getManagers = () => {
-    connection.query("SELECT id, first_name, last_name, CONCAT_WS(' ', first_name, last_name) AS managers FROM employee", (err, res) => {
+    connection.query("SELECT id, first_name, last_name, CONCAT_WS(' ', first_name, last_name) AS manager FROM employee", (err, res) => {
         if (err) throw err;
-        managers = res;
+        manager = res;
     });
 }
 getEmployees = () => {
@@ -87,9 +90,9 @@ addSomething = () => {
         else if (answer.add === "Role") {
             console.log("Add a new: " + answer.add);
             addRole();
-        }else if(answer.add === "Employee") {
+        } else if(answer.add === "Employee") {
             console.log("Add a new: " + answer.add);
-            addEmployee();
+            const newLocal = addEmployee();
         }
         else if (answer.add === "Exit") {
             console.log("Goodbye");
@@ -109,6 +112,7 @@ addDepartment = () => {
         connection.query(`INSERT INTO department (name) VALUES ('${answer.department}')`, (err, res) => {
             if (err) throw err;
             console.log("1 new department added: " + answer.department);
+        
             getDepartment();
             start();
         });
@@ -117,7 +121,7 @@ addDepartment = () => {
 
 addRole = () => {
     let departmentOptions = [];
-    for (i = 0; i < departments.length; i++) {
+    for (i = 0; i < departmentOptions.length; i++) {
         departmentOptions.push(Object(departments[i]));
     }
 
@@ -139,6 +143,7 @@ addRole = () => {
             choices: departmentOptions
         },
     ]).then(function(answer) {
+        let departmentOptions = [];
         for (i = 0; i < departmentOptions.length; i++) {
             if (departmentOptions[i].name === answer.department_id) {
                 department_id = departmentOptions[i].id
@@ -155,14 +160,14 @@ addRole = () => {
 }
 
 addEmployee = () => {
-    getRoles();
+    getRole();
     getManagers();
     let roleOptions = [];
-    for (i = 0; i < roles.length; i++) {
-        roleOptions.push(Object(roles[i]));
+    for (i = 0; i < roleOptions.length; i++) {
+        roleOptions.push(Object(role[i]));
     };
     let managerOptions = [];
-    for (i = 0; i < managers.length; i++) {
+    for (i = 0; i < managerOptions.length; i++) {
         managerOptions.push(Object(managers[i]));
     }
     inquirer.prompt([
@@ -283,15 +288,15 @@ updateSomething = () => {
 updateEmployeeRole = () => {
     let employeeOptions = [];
 
-    for (var i = 0; i < employees.length; i++) {
-        employeeOptions.push(Object(employees[i]));
+    for (var i = 0; i < employeeOptions.length; i++) {
+        employeeOptions.push(Object(employee[i]));
     }
     inquirer.prompt([
         {
             name: "updateRole",
             type: "list",
             message: "Which employee's role would you like to update?",
-            choices: function(){
+            choices: function() {
                 var choiceArray = [];
                 for (var i = 0; i < employeeOptions.length; i++) {
                     choiceArray.push(employeeOptions[i].Employee_Name);
@@ -342,7 +347,7 @@ updateEmployeeRole = () => {
 updateEmployeeManager = () => {
     let employeeOptions = [];
 
-    for (var i = 0; i < employees.length; i++) {
+    for (var i = 0; i < employeeOptions.length; i++) {
         employeeOptions.push(Object(employees[i]));
     }
     inquirer.prompt([
@@ -420,7 +425,42 @@ deleteSomething = () => {
         }
     });
 }
+
 deleteDepartment = () => {
+    let departmentOptions = [];
+    for (i = 0; i < departmentOptions.length; i++) {
+       departmentOptions.push(Object(departments[i]));
+    }
+    inquirer.prompt([
+        {
+            name: "deleteDepartment",
+            type: "list",
+            message: "What department would you like to delete?",
+            choices: function() {
+                var choiceArray = [];
+                for (var i = 0; i <departmentOptions.length; i++){
+                    choiceArray.push(departmentOptions[i]);
+                }
+                return choiceArray;
+            }
+        }
+    ]).then((answer) => {
+        departmentOptions = [];
+        for (i = 0; i < departmentOptions.length; i++) {
+            if (answer.deleteDepartment === departmentOptions[i].name) {
+                newChoice = departmentOptions[i].id;
+                connection.query(`DELETE FROM department WHERE id = ${newChoice}`), (err, res) => {
+                    if (err) throw err;
+                }
+                console.log("Employees: " + answer.deleteEmployee + " Deleted");
+            }
+        }
+        getEmployees();
+        start();
+        });
+}
+
+deleteRole = () => {
     let departmentOptions = [];
     for (i = 0; i < departments.length; i++) {
        departmentOptions.push(Object(departments[i]));
