@@ -212,6 +212,27 @@ addEmployee = () => {
             console.log("1 new Employee added: " + answer.first_name + " " + answer.last_name);
             getEmployees();
             start();
-         } ) })
+         }); 
+        });
+}
 
-    }
+viewSomething = () => {
+    inquirer.prompt([
+        {
+            name: "viewChoice",
+            type: "list",
+            message: "What do you want to view?",
+            choices: ["Departments", "Roles", "Employees", "Exit"]
+        }
+    ]).then(answer => {
+        if (answer.viewChoice === "Departments") {
+            viewDepartments();
+        } else if (answer.viewChoice === "Roles") {
+            viewRoles();
+        } else if (answer.viewChoice === "Employees") {
+            viewEmployees();
+        } else if (answer.viewChoice === "Exit") {
+            connection.end();
+        }
+    })
+}
